@@ -2,7 +2,6 @@
   "name": "ai-interview-assistant",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://dishhaa.github.io/ai-interview-assistant",
   "dependencies": {
     "@reduxjs/toolkit": "^2.9.0",
     "@tanstack/react-query": "^5.90.2",
@@ -11,7 +10,6 @@
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^13.5.0",
     "antd": "^5.27.4",
-    "gh-pages": "^6.3.0",
     "mammoth": "^1.11.0",
     "pdf-parse": "^1.1.1",
     "pdfjs-dist": "^3.11.174",
@@ -29,9 +27,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [

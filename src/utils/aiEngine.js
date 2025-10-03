@@ -107,8 +107,8 @@ export function getInterviewQuestions(skillsText = "") {
     randomized.forEach((q, idx) => {
       result.push({
         id: `${level}-${idx + 1}`,
-        level,
-        time: timeLimits[level],
+      level,
+      time: timeLimits[level],
         type: q.type,
         question: q.question,
         options: q.options || undefined,

@@ -1,6 +1,7 @@
 // src/App.jsx
-import React, { useState, useRef } from "react";
-import { Layout, Tabs, Card, Input, Button, Upload, Typography, message } from "antd";
+import React, { useState, useRef, useEffect } from "react";
+import { Layout, Tabs, Card, Input, Button, Upload, Typography, message, ConfigProvider, Switch, Modal } from "antd";
+import { theme as antdTheme } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { useSelector, useDispatch } from "react-redux";
 import { v4 as uuidv4 } from "uuid";
@@ -8,6 +9,10 @@ import { v4 as uuidv4 } from "uuid";
 import ChatWindow from "./components/ChatWindow";
 import JobDescription from "./components/JobDescription";
 import Dashboard from "./components/Dashboard";
+import Hero from "./components/Hero";
+import FeatureGrid from "./components/FeatureGrid";
+// Steps and Stats removed per new layout
+import SiteFooter from "./components/Footer";
 import { addCandidate } from "./redux/candidateSlice";
 import { parseResume } from "./utils/resumeParser";
 
@@ -19,6 +24,12 @@ export default function App() {
   const dispatch = useDispatch();
   const candidates = useSelector((s) => s.candidates.list || []);
 
+  const [isDark, setIsDark] = useState(() => {
+    const saved = localStorage.getItem("theme");
+    return saved ? saved === "dark" : false;
+  });
+  // Main page tabs removed; use modal tabs instead
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -26,9 +37,18 @@ export default function App() {
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [showChat, setShowChat] = useState(false);
   const [jd, setJD] = useState("");
+  const [isStartOpen, setIsStartOpen] = useState(false);
 
   const chatRef = useRef(null);
   const candidateRef = useRef(null);
+
+  useEffect(() => {
+    document.body.style.background = "#0B1020";
+    document.body.style.color = "#E5E7EB";
+    localStorage.setItem("theme", isDark ? "dark" : "light");
+  }, [isDark]);
+
+  // No active tab persistence needed on main page anymore
 
   // Resume upload
   const handleFileUpload = async (file) => {
@@ -99,124 +119,122 @@ export default function App() {
   };
 
   return (
-    <Layout style={{ minHeight: "100vh", padding: "20px", background: "#f5f7fa" }}>
-      <Content style={{ maxWidth: 700, margin: "0 auto" }}>
-        <Title level={2} style={{ textAlign: "center", marginBottom: 30, color: "#1890ff" }}>
-          AI-Powered Interview Assistant
-        </Title>
+    <ConfigProvider theme={{
+      algorithm: isDark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
+      token: {
+        colorBgBase: "#0B1020",
+        colorBgContainer: "#111827",
+        colorText: "#E5E7EB",
+        colorPrimary: "#7C3AED",
+        colorInfo: "#22D3EE",
+        colorBorder: "#1F2937",
+        borderRadius: 8,
+      },
+      components: {
+        Card: { headerBg: "#111827", colorBorderSecondary: "#1F2937" },
+        Button: { colorPrimary: "#7C3AED", colorPrimaryHover: "#6D28D9", colorPrimaryActive: "#5B21B6" },
+        Tabs: { itemSelectedColor: "#E5E7EB" },
+      },
+    }}>
+      <Layout style={{ minHeight: "100vh", padding: "20px", background: "#0B1020" }}>
+        <Content style={{ maxWidth: 1200, margin: "0 auto" }}>
+          <header style={{ width: "100%", marginBottom: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
+              <Title level={3} style={{ margin: 0, color: "#E5E7EB" }}>AI Interview Assistant</Title>
+            </div>
+          </header>
 
-        <Tabs defaultActiveKey="1" type="card" centered size="large">
-
-          {/* Interviewee Tab */}
-          <TabPane tab="Interviewee" key="1">
-            <JobDescription candidateView={true} onJDParsed={(text) => setJD(text)} />
-
-            <Card
-              title="Candidate Information"
-              bordered={false}
+          <Hero />
+          <FeatureGrid />
+          <div style={{ display: "flex", justifyContent: "center", marginTop: 20, marginBottom: 8 }}>
+            <Button
+              onClick={() => setIsStartOpen(true)}
               style={{
-                marginTop: 20,
+                background: "#22D3EE",
+                color: "#0B1020",
+                padding: "14px 28px",
+                fontSize: 16,
+                fontFamily: 'Ubuntu, Inter, sans-serif',
+                fontWeight: 700,
                 borderRadius: 10,
-                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                padding: 20,
+                border: "none",
+                boxShadow: "0 8px 24px rgba(34, 211, 238, 0.35)",
               }}
+              size="large"
             >
-              <Upload showUploadList={false} beforeUpload={handleFileUpload} accept=".pdf,.docx">
-                <Button
-                  icon={<UploadOutlined />}
-                  type="primary"
-                  style={{ marginBottom: 8, borderRadius: 5 }}
-                >
-                  Upload Resume
-                </Button>
-              </Upload>
+              Start Interview
+            </Button>
+          </div>
+          {/* Start Interview modal with tabs */}
+          <Modal title="Start Interview" open={isStartOpen} onCancel={() => setIsStartOpen(false)} footer={null} width={980}>
+            <Tabs defaultActiveKey="1" centered>
+              <TabPane tab="Interviewee" key="1">
+                <Typography.Paragraph style={{ color: "#7C3AED", fontSize: 16, marginBottom: 8, fontWeight: 600 }}>
+                  Tailor your practice
+                </Typography.Paragraph>
+                <Typography.Paragraph style={{ marginTop: -8 }}>
+                  Upload a job description so the interview aligns with the role.
+                </Typography.Paragraph>
+                <JobDescription candidateView={true} onJDParsed={(text) => setJD(text)} />
 
-              {file && (
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    marginBottom: 8,
-                    background: "#f0f2f5",
-                    padding: 10,
-                    borderRadius: 5,
-                  }}
-                >
-                  <span>{file.name}</span>
-                  <Button size="small" onClick={viewFile}>View</Button>
-                  <Button size="small" danger onClick={deleteFile}>Delete</Button>
-                </div>
-              )}
+                <Card title="Candidate Information" bordered={false} style={{ marginTop: 20, borderRadius: 10, boxShadow: "0 4px 12px rgba(0,0,0,0.1)", padding: 20 }}>
+                  <Typography.Paragraph style={{ color: "#7C3AED", fontSize: 16, marginBottom: 8, fontWeight: 600 }}>
+                    Create a profile
+                  </Typography.Paragraph>
+                  <Typography.Paragraph style={{ marginTop: -8 }}>
+                    Add basic details to track progress and scores.
+                  </Typography.Paragraph>
 
-              <Input
-                placeholder="Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                style={{ marginBottom: 8, borderRadius: 5 }}
-              />
-              <Input
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                style={{ marginBottom: 8, borderRadius: 5 }}
-              />
-              <Input
-                placeholder="Phone"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                style={{ marginBottom: 12, borderRadius: 5 }}
-              />
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+                    <Input placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} style={{ borderRadius: 5 }} />
+                    <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} style={{ borderRadius: 5 }} />
+                    <Input placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} style={{ borderRadius: 5 }} />
+                  </div>
 
-              <div style={{ display: "flex", gap: 10 }}>
-                <Button type="primary" onClick={createCandidate} style={{ borderRadius: 5 }}>
-                  Create Candidate
-                </Button>
+                  <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+                    <Button type="primary" onClick={createCandidate} style={{ borderRadius: 5 }}>
+                      Create Candidate
+                    </Button>
+                    {selectedCandidate && !showChat && selected && (
+                      <Button type="primary" onClick={startInterview} style={{ borderRadius: 5 }}>
+                        Start Interview
+                      </Button>
+                    )}
+                  </div>
 
-                {selectedCandidate && !showChat && selected && (
-                  <Button type="primary" onClick={startInterview} style={{ borderRadius: 5 }}>
-                    Start Interview
-                  </Button>
-                )}
-              </div>
-
-              {showChat && selectedCandidate && (
-                <div ref={chatRef}>
-                  <ChatWindow candidateId={selectedCandidate} />
-                </div>
-              )}
-            </Card>
-          </TabPane>
-
-          {/* Interviewer Dashboard */}
-          <TabPane tab="Interviewer Dashboard" key="2">
-            <JobDescription candidateView={false} onJDParsed={(text) => setJD(text)} />
-            <Dashboard onOpenCandidate={handleViewCandidate} />
-
-            {selectedCandidate && selected && (
-              <div ref={candidateRef}>
-                <Card
-                  title={`Candidate: ${selected.name}`}
-                  bordered={false}
-                  style={{
-                    marginTop: 20,
-                    borderRadius: 10,
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                    padding: 20,
-                  }}
-                >
-                  <p><strong>Email:</strong> {selected.email}</p>
-                  <p><strong>Phone:</strong> {selected.phone}</p>
-                  <p><strong>Status:</strong> {selected.status}</p>
-                  <p><strong>Score:</strong> {selected.score}</p>
-                  {selected.summary && <p><strong>Summary:</strong> {selected.summary}</p>}
+                  {showChat && selectedCandidate && (
+                    <div ref={chatRef}>
+                      <ChatWindow candidateId={selectedCandidate} jd={jd} />
+                    </div>
+                  )}
                 </Card>
-              </div>
-            )}
-          </TabPane>
+              </TabPane>
+              <TabPane tab="Interviewer Dashboard" key="2">
+                <Typography.Paragraph style={{ color: "#7C3AED", fontSize: 16, marginBottom: 8, fontWeight: 600 }}>
+                  Assess faster
+                </Typography.Paragraph>
+                <Typography.Paragraph style={{ marginTop: -8 }}>
+                  Filter and review candidates at a glance.
+                </Typography.Paragraph>
+                <Dashboard onOpenCandidate={handleViewCandidate} />
 
-        </Tabs>
-      </Content>
-    </Layout>
+                {selectedCandidate && selected && (
+                  <div ref={candidateRef}>
+                    <Card title={`Candidate: ${selected.name}`} bordered={false} style={{ marginTop: 20, borderRadius: 10, boxShadow: "0 4px 12px rgba(0,0,0,0.1)", padding: 20 }}>
+                      <p><strong>Email:</strong> {selected.email}</p>
+                      <p><strong>Phone:</strong> {selected.phone}</p>
+                      <p><strong>Status:</strong> {selected.status}</p>
+                      <p><strong>Score:</strong> {selected.score}</p>
+                      {selected.summary && <p><strong>Summary:</strong> {selected.summary}</p>}
+                    </Card>
+                  </div>
+                )}
+              </TabPane>
+            </Tabs>
+          </Modal>
+          <SiteFooter />
+        </Content>
+      </Layout>
+    </ConfigProvider>
   );
 }

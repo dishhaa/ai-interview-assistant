@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, Table, Input, Card } from "antd";
+import { Button, Table, Input, Card, Typography } from "antd";
 import { useSelector } from "react-redux";
 
 export default function Dashboard({ onOpenCandidate }) {
@@ -68,6 +68,12 @@ export default function Dashboard({ onOpenCandidate }) {
       title="Candidates Dashboard"
       style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}
     >
+      <Typography.Paragraph style={{ color: "#708993", fontSize: 16, marginBottom: 8, fontWeight: 600 }}>
+        Review at a glance
+      </Typography.Paragraph>
+      <Typography.Paragraph style={{ marginTop: -8 }}>
+        Search and sort to quickly find the right candidate.
+      </Typography.Paragraph>
       <Input
         placeholder="Search by name/email"
         value={search}
